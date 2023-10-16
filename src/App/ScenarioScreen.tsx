@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react"
 
- import {Components, Tools} from "@praidfox/tst-library";
+import {Components, Tools} from "@praidfox/tst-library";
 import {OptionsPropType} from '@atlaskit/radio/types';
 import {RadioGroup} from '@atlaskit/radio';
 import FormDefault from "./FormDefault";
@@ -31,7 +31,7 @@ const ScenarioScreen = () => {
 
     const [fieldsOptions, setFieldsOptions] = useState({} as fieldInScenarioScreen)
     const [systemOrLocation, setSystemOrLocation] = useState<string>()
-    const [lostSystems, setLostSystems] = useState()
+    const [lostSystems, setLostSystems] = useState<Tools.Interface.OptionsModal.RenderOptions[]>([])
     const [submissionRequired, setSubmissionRequired] = useState<string>()
     const [finishLoad, setFinishLoad] = useState<boolean>(false)
     const [typeActionValue, setTypeActionValue] = useState<string>()
@@ -56,23 +56,26 @@ const ScenarioScreen = () => {
             }))
 
             const scenarioType: Tools.Interface.BaseModel.Option[] = r[1].data
-            newFieldsOptions["scenarioType"] =  scenarioType.map(option => ({label: option.value, value: option.id}))
+            newFieldsOptions["scenarioType"] = scenarioType.map(option => ({label: option.value, value: option.id}))
 
             const scenarioAction: Tools.Interface.BaseModel.Option[] = r[3].data
-            newFieldsOptions["scenarioAction"] =  scenarioAction.map(option => ({label: option.value, value: option.id.toString(), name: "scenarioAction"}))
-
+            newFieldsOptions["scenarioAction"] = scenarioAction.map(option => ({
+                label: option.value,
+                value: option.id.toString(),
+                name: "scenarioAction"
+            }))
 
 
             Tools.Api.PluginResourceApi.getAllResourceInProcess(processInBCP.map(issue => issue.id))
                 .then(r => {
                         const resources: Tools.Interface.DtoModal.ResourceInfoDTO[] = r.data
-                        newFieldsOptions['systemsInProcess'] = resources.map(resource => ({
-                            label: resource.objectIssue.summary,
-                            value: resource.objectIssue.id
+                        newFieldsOptions['systemsInProcess'] = resources.filter(res => res.resourceType == "ItSystem").map(resource => ({
+                            label: resource.resourceIssue.summary,
+                            value: resource.resourceIssue.id
                         }))
 
-                    setFieldsOptions(newFieldsOptions)
-                    setFinishLoad(r => true)
+                        setFieldsOptions(newFieldsOptions)
+                        setFinishLoad(r => true)
                     }
                 )
         })
@@ -82,24 +85,53 @@ const ScenarioScreen = () => {
         }
     }, []);
 
-    const pop = (e) => {
-        console.log(e)
-    }
+
     const systemOrLocationChange = () => {
         switch (systemOrLocation) {
-            case "systems" : return <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.INTERNAL_IT_SYSTEMS} setFunction={pop} isMulti={true} jql = {`id in (${fieldsOptions.systemsInProcess.map(option => option.value).join(',')})`} title={'Утраченная система'}/>
-            case "location" : return <Components.Fields.FieldSelect id={"scenarioType"} title={"Вид сценария"} options={fieldsOptions.scenarioType}/>
-            default: return ''
+            case "systems" :
+                return <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.INTERNAL_IT_SYSTEMS}
+                                                   setFunction={setLostSystems}
+                                                   isMulti={true}
+                                                   jql={`id in (${fieldsOptions.systemsInProcess.map(option => option.value).join(',')})`}
+                                                   title={'Утраченная система'}/>
+            case "location" :
+                return <Components.Fields.FieldSelect id={"scenarioType"} title={"Вид сценария"}
+                                                      options={fieldsOptions.scenarioType}/>
+            default:
+                return ''
         }
     }
 
     const getMoreField = () => {
         switch (typeActionValue) {
-            case "51108": console.log("Блокируем и только сохранение")
-            case "51104": console.log("Выводим на каждую потерянную систему альтернативу")
+            case "51108":
+                console.log("Блокируем и только сохранение")
+                break;
+            case "51104":
+                console.log("Выводим на каждую потерянную систему альтернативу", lostSystems)
+                return lostSystems.map((opt) => <div key={opt.key + "SYSTEMS"}><span>{opt.label}:
+                <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.INTERNAL_IT_SYSTEMS}
+                                            placeholder={"Альтернативная система"}
+                                            id={"alternativeSystems" + opt.key}
+                                            title={""}
+                                            jql={Tools.Storage.ConfigForJqlField.INTERNAL_IT_SYSTEMS.jql + `and key != ${opt.value}`}/>
+            </span></div>)
 
+            case "51102":
+                console.log("Возможна передача на аутсорсинг", systemOrLocation)
+
+                return systemOrLocation == "systems" ? lostSystems.map(opt => <div
+                        key={opt.key + "PARTNERS"}><span>{opt.label}:
+                <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.PARTNERS}
+                                            placeholder={"Партнёр"}
+                                            id={"alternativePartner" + opt.key}
+                                            title={""}/></span></div>) :
+                    <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.PARTNERS} title={''}/>
+            case "51103":
+                return <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.DEPARTMENT} title={''}/>
+            default:
+                return ''
         }
-        console.log(typeActionValue)
     }
 
 
@@ -122,7 +154,8 @@ const ScenarioScreen = () => {
 
             {finishLoad ?
                 <>
-                    <Components.Fields.FieldSelect id={"process"} placeholder={"Выберете процесс"} title={"Процессы прикреплённые к плану"}
+                    <Components.Fields.FieldSelect id={"process"} placeholder={"Выберете процесс"}
+                                                   title={"Процессы прикреплённые к плану"}
                                                    options={fieldsOptions.processInBCP}/>
 
                     <Field name="systemOrLocation" defaultValue="" label={"Выбор утраченного ресурса:"}>
@@ -143,12 +176,13 @@ const ScenarioScreen = () => {
                         {({fieldProps}) => (
                             <RadioGroup
                                 {...fieldProps}
-                                options={fieldsOptions.scenarioAction.filter(opt => systemOrLocation== "systems" ? scenarioTypeForSystem.includes(Number(opt.value)) : scenarioTypeForLocation.includes(Number(opt.value)))}
+                                options={fieldsOptions.scenarioAction.filter(opt => systemOrLocation == "systems" ? scenarioTypeForSystem.includes(Number(opt.value)) : scenarioTypeForLocation.includes(Number(opt.value)))}
                                 onChange={
-                                       e => {setTypeActionValue(e.target.value)
-                                           console.log(e.target.value)
-                                       fieldProps.onChange(e)
-                                       }
+                                    e => {
+                                        setTypeActionValue(e.target.value)
+                                        console.log(e.target.value)
+                                        fieldProps.onChange(e)
+                                    }
                                 }
                             />
                         )}
@@ -165,10 +199,9 @@ const ScenarioScreen = () => {
                     {/*</Field>*/}
 
 
-
-                    <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.PARTNERS} title={''}/>
-                    <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.DEPARTMENT} title={''}/>
-                    <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.WORKPLACES} title={''}/>
+                    {/*<Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.PARTNERS} title={''}/>*/}
+                    {/*<Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.DEPARTMENT} title={''}/>*/}
+                    {/*<Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.WORKPLACES} title={''}/>*/}
                 </>
                 :
 
