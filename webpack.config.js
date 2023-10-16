@@ -10,9 +10,8 @@ module.exports = (env) => {
         entry: "./src/index.js",
         output: {
             path: path.join(__dirname, "./bundle"),
-            library: 'testlib',
-            libraryTarget: 'umd',
-            filename: 'index.js',
+            filename: "main-view.js",
+            library: 'ResourceTable'
         },
         module: {
             rules: [

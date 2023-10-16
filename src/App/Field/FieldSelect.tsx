@@ -4,7 +4,7 @@ import React, {useState} from "react";
 
 
 
-export const FieldSelectttttt = ({id, placeholder, title, options, setFunction, defaultValue, isSearchable=false, isClearable = false, description=null, isMulti=false}) => {
+export const FieldSelect = ({id, placeholder, title, options, setFunction, defaultValue, isSearchable=false, isClearable = false, description=null, isMulti=false}) => {
     const [value, setValue] = useState()
 
 
@@ -12,7 +12,6 @@ export const FieldSelectttttt = ({id, placeholder, title, options, setFunction, 
         <>
             <Field id={id} name={id} label={title}  defaultValue={defaultValue}>
                 {({fieldProps: {onChange, ...rest}}) => (
-                    <>
                         <Select
                             {...rest}
                             placeholder = {placeholder ? placeholder : "Выбрать из выпадающего списка"}
@@ -27,10 +26,8 @@ export const FieldSelectttttt = ({id, placeholder, title, options, setFunction, 
 
                             isClearable = {isClearable}
                         />
-                    </>
                 )}
             </Field>
-            {value?.value === 11815 && description}
         </>
     )
 }

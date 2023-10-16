@@ -1,7 +1,8 @@
 import Form, {FormFooter} from "@atlaskit/form";
 import Button from "@atlaskit/button";
 import React from "react";
-import {Components} from "@praidfox/tst-library";
+
+
 
 const FormDefault = ({children}) => {
     return (
