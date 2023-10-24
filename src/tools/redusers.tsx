@@ -18,7 +18,7 @@ export const reducerValueField = (state: ValuesFields, action: ActionValuesField
         case "addLostSystems":
             let playLoad: Tools.Interface.OptionsModal.RenderOptionsIssue[] = action.playLoad
             let idSystem = playLoad.map(opt => opt.value.toString())
-            console.log("итог", state.alternativePartnerMany?.filter(opt => idSystem.includes(opt.mainIssue.toString())))
+
             return {
                 ...state, lostSystems: action.playLoad,
                 alternativePartnerMany: state.alternativePartnerMany?.filter(opt => idSystem.includes(opt.mainIssue.toString())),
@@ -31,7 +31,6 @@ export const reducerValueField = (state: ValuesFields, action: ActionValuesField
             }
         case 'typeAction':
             //Тип действий
-
             return {
                 ...state, typeAction: action.playLoad
             }
@@ -143,24 +142,24 @@ export const reducerOptionsField = (state: FieldInScenarioScreen, action: Action
 
         case "systemsInProcess":
             const resources: Tools.Interface.DtoModal.ResourceInfoDTO[] = action.playLoad.data
-            //Запускать актуализацию уже выбранных опций в поле Утраченные системы
-            const options = resources.filter(res => res.resourceType == Tools.Storage.Constants.ResourceTypes.INTERNAL_IT_SYSTEM).map(resource => ({
-                label: resource.resourceIssue.summary,
-                value: resource.resourceIssue.id,
-                key: resource.resourceIssue.key,
-                info: resource.resourceIssue.fields["customfield_10212"]
-            }))
+            // //Запускать актуализацию уже выбранных опций в поле Утраченные системы
+            // const options = resources.filter(res => res.resourceType == Tools.Storage.Constants.ResourceTypes.INTERNAL_IT_SYSTEM).map(resource => ({
+            //     label: resource.resourceIssue.summary,
+            //     value: resource.resourceIssue.id,
+            //     key: resource.resourceIssue.key,
+            //     info: resource.resourceIssue.fields["customfield_10212"]
+            // }))
 
 
             action.playLoad.dispatch({
                 type: "checkValueAndOptions",
-                playLoad: {options: options, onlyIntersecting: action.playLoad.onlyIntersecting}
+                playLoad: {options: resources, onlyIntersecting: action.playLoad.onlyIntersecting}
             })
 
 
             return {
                 ...state,
-                systemsInProcess: options
+                systemsInProcess: resources
             }
         default:
             return state
