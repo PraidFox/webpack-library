@@ -12,9 +12,10 @@ function run(type, userAccess) {
     }
     if (type === "ALL") {
         ReactDOM.render(
-            <React.StrictMode>
+            // <React.StrictMode>
                 <ScenarioTable access={userAccess}/>
-            </React.StrictMode>,
+            // </React.StrictMode>
+    ,
             document.getElementById("scenario-bcp-table")
         );
     } else {
