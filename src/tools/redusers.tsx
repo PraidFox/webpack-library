@@ -171,7 +171,6 @@ const checkLostSystems = (options, valuesFields, onlyIntersecting) => {
 
     let actualOptions = options
 
-
     if (onlyIntersecting) {
         actualOptions = options.map(x => options?.filter(y => y.key == x.key).length == valuesFields.process.length ? x : null).filter(x => x != null)
     }

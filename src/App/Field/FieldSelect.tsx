@@ -1,8 +1,6 @@
 import Select, {components} from "@atlaskit/select";
 import {Field} from "@atlaskit/form";
 import React, {useState} from "react";
-import {Info} from "./Info";
-
 
 
 interface FieldSelect {
@@ -16,7 +14,7 @@ interface FieldSelect {
     isClearable?: boolean
     description?: string
     isMulti?: boolean
-    componentsRender?: ({children, ...props}: { children: any; [p: string]: any }) => React.JSX.Element;
+    componentsRender?: any
 }
 
 
@@ -37,7 +35,6 @@ export const FieldSelect = ({
 
     const [value, setValue] = useState()
 
-
     return (
         <Field id={id} name={id} label={title} defaultValue={defaultValue}>
             {({fieldProps: {onChange, ...rest}}) => (
@@ -55,7 +52,7 @@ export const FieldSelect = ({
 
                         isMulti={isMulti}
                         isClearable={isClearable}
-                        components={componentsRender  ? {Option: (props:any) => componentsRender({...props})} : null}
+                        components={componentsRender}
                     />
                 </>
             )}

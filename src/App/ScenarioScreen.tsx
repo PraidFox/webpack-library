@@ -2,16 +2,21 @@ import React, {ChangeEvent, useEffect, useReducer, useState} from "react"
 import {Checkbox} from '@atlaskit/checkbox';
 import Spinner from '@atlaskit/spinner';
 import {Components, Tools} from "@praidfox/tst-library";
-import {optionsSubmissionRequired, scenarioTypeForLocation, scenarioTypeForSystem} from "../tools/constants";
+import {
+    optionsSubmissionRequired,
+    scenarioTypeForLocation,
+    scenarioTypeForSystem,
+    workTypeDescription
+} from "../tools/constants";
 import {reducerOptionsField, reducerValueField} from "../tools/redusers";
 import {FieldInScenarioScreen, ValuesFields} from "../tools/interfaces";
 import FormDefault from "./FormDefault";
 import _ from "lodash";
-import InlineMessage from '@atlaskit/inline-message';
 import {OptionsPropType} from "@atlaskit/radio/types";
 import SectionMessage from '@atlaskit/section-message';
-import Toggle from '@atlaskit/toggle';
-import {FieldGr} from "./Field/FieldGr";
+import {LostSystemRender} from "../tools/renderComponentOptionsView";
+import QuestionCircleIcon from '@atlaskit/icon/glyph/question-circle'
+import PlanAction from "./PlanAction";
 
 const issue = Tools.Utils.BaseUtils.getCurrentIssueId()
 const defaultValues = {
@@ -40,6 +45,7 @@ const ScenarioScreen = () => {
 
         Promise.all([p0, p1, p2, p3, p4]).then(r => {
             const processInBCP: Tools.Interface.BaseModel.Issue[] = r[0].data.fields[Tools.Utils.BaseUtils.getFieldNameForJql(FieldsId.PROCESSES_MULTIPICKER)]
+            //Переписать на разовое сохранение, а не 5 раз ходить и записывать в стейт
             setOptionsFields({type: "processInBCP", playLoad: processInBCP})
             setOptionsFields({type: "scenarioType", playLoad: r[1].data})
             setOptionsFields({type: "typeWorkplace", playLoad: r[2].data})
@@ -53,7 +59,6 @@ const ScenarioScreen = () => {
     }, []);
 
     useEffect(() => {
-        console.log(valuesFields.lostSystems)
         checkValidIntersectingNew()
     }, [valuesFields.lostSystems]);
 
@@ -65,14 +70,12 @@ const ScenarioScreen = () => {
             })
         }
         setOnlyIntersecting(r => !r)
-        //checkValidIntersecting(valuesFields.lostSystems, optionsFields.systemsInProcess, valuesFields.process.length)
     }
     const changeLostSystems = (e) => {
         setValuesFields({
             type: "addLostSystems",
             playLoad: e
         })
-        //checkValidIntersecting(e, optionsFields.systemsInProcess, valuesFields.process.length)
     }
     const changeProcess = (e: Tools.Interface.OptionsModal.RenderOptionsIssue[]) => {
 
@@ -91,20 +94,17 @@ const ScenarioScreen = () => {
                         info: resource.resourceIssue.fields["customfield_10212"]
                     }))
 
-                    if (e.length >= 2) {
-                        data = data.map(x => data?.filter(y => y.key == x.key).length == e.length ? {
-                            ...x,
-                            intersecting: true
-                        } : x).filter(x => x != null)
-                    }
-
+                    // if (e.length >= 2) {
+                    //     data = data.map(x => data?.filter(y => y.key == x.key).length == e.length ? {
+                    //         ...x,
+                    //         intersecting: true
+                    //     } : x).filter(x => x != null)
+                    // }
 
                     setOptionsFields({
                         type: "systemsInProcess",
                         playLoad: {data: data, dispatch: setValuesFields, onlyIntersecting: onlyIntersecting}
                     })
-
-                    //checkValidIntersecting(valuesFields.lostSystems, data, e.length)
                 }
             )
 
@@ -117,11 +117,10 @@ const ScenarioScreen = () => {
         })
 
         if (e.target.value == OptionsId.MEASURE_RESOURCE_TYPE_IT_SYSTEM.toString()) {
-            //checkValidIntersecting(valuesFields.lostSystems, optionsFields.systemsInProcess, valuesFields.process.length)
+            checkValidIntersectingNew()
         } else {
             setValidTypeActions(true)
         }
-
     }
     const checkLevelValid = (lvl: number) => {
         switch (lvl) {
@@ -134,11 +133,33 @@ const ScenarioScreen = () => {
         }
     }
     const getOptionsForLostSystemField = () => {
-        if (onlyIntersecting) {
-            return _.uniqWith(optionsFields.systemsInProcess?.map(x => optionsFields.systemsInProcess?.filter(y => y.key == x.key).length == valuesFields.process.length ? x : null).filter(x => x != null), _.isEqual)
+        if (valuesFields.process.length > 1) {
+            let noIntersectingValue = _.uniqWith(optionsFields.systemsInProcess?.map(x => optionsFields.systemsInProcess?.filter(y => y.key == x.key).length != valuesFields.process.length ? x : null).filter(x => x != null), _.isEqual)
+            let intersectingValue = _.uniqWith(optionsFields.systemsInProcess?.map(x => optionsFields.systemsInProcess?.filter(y => y.key == x.key).length == valuesFields.process.length ? x : null).filter(x => x != null), _.isEqual)
+
+            if (onlyIntersecting) {
+                return [
+                    {
+                        label: 'Пересекающиеся системы',
+                        options: intersectingValue
+                    }
+                ]
+            } else {
+                return [
+                    {
+                        label: 'Пересекающиеся системы',
+                        options: intersectingValue
+                    },
+                    {
+                        label: 'Не пересекающиеся системы',
+                        options: noIntersectingValue
+                    }
+                ]
+            }
         } else {
             return _.uniqWith(optionsFields.systemsInProcess, _.isEqual)
         }
+
     }
     const getOptionsForTypeAction = (): OptionsPropType => {
         let options = optionsFields.scenarioAction.filter(opt => valuesFields.typeLostResource == "20215" ? scenarioTypeForSystem.includes(Number(opt.value)) : scenarioTypeForLocation.includes(Number(opt.value)))
@@ -149,7 +170,6 @@ const ScenarioScreen = () => {
 
         return options
     }
-
     const getSystemOrScenarioField = () => {
         switch (valuesFields.typeLostResource) {
             case OptionsId.MEASURE_RESOURCE_TYPE_IT_SYSTEM.toString() :
@@ -161,7 +181,7 @@ const ScenarioScreen = () => {
                         setFunction={changeLostSystems}
                         defaultValue={valuesFields.lostSystems}
                         options={getOptionsForLostSystemField()}
-                        componentsRender={Tools.Utils.RenderComponentOptionsView.Info}
+                        componentsRender={{Option: LostSystemRender}}
                         isClearable={false}
                         isMulti={true}
                         isSearchable={true}/>
@@ -262,9 +282,24 @@ const ScenarioScreen = () => {
                     /></div>
 
             case OptionsId.TRANSITION_TO_BACKUP_LOCATIONS:
+                console.log(optionsFields.typeWorkplace.map(opt => {
+                    return {...opt, description: workTypeDescription.get(opt.value)}
+                }))
+                let pop = optionsFields.typeWorkplace.map(opt => {
+                    return {
+                        ...opt,
+                        label:
+                            <>{opt.label}
+                                <span title={workTypeDescription.get(opt.value)}>
+                                <QuestionCircleIcon size={"small"}/>
+                        </span>
+                            </>
+                    }
+                })
+//, add: workTypeDescription.get(x.value)})
                 return valuesFields.typeLostResource == OptionsId.MEASURE_RESOURCE_TYPE_OFFICE.toString() ? <>
                     <Components.Fields.FieldRadioGroup name={"typeWorkplace"} title={"Тип рабочего места"}
-                                                       options={optionsFields.typeWorkplace}
+                                                       options={pop}
                                                        setFunction={(e: ChangeEvent<HTMLInputElement>) => setValuesFields({
                                                            type: 'typeWorkplace',
                                                            playLoad: e.target.value
@@ -283,7 +318,6 @@ const ScenarioScreen = () => {
                 return ''
         }
     }
-
     const needProvide = () => {
         if (valuesFields.needNewLocation) {
             return valuesFields.needNewLocation == "false" ?
@@ -297,26 +331,7 @@ const ScenarioScreen = () => {
         }
 
     }
-    // const checkValidIntersecting = (valueLostSytems, optionsSystemInProcess, countProcess) => {
-    //
-    //     if (!onlyIntersecting && countProcess > 1) {
-    //         const actualOptions = optionsSystemInProcess.map(x => optionsSystemInProcess?.filter(y => y.key == x.key).length == countProcess ? x : null).filter(x => x != null)
-    //         if (valueLostSytems.length !== valueLostSytems.filter(value => actualOptions.map(val => val.value).includes(value.value)).length) {
-    //             setValuesFields({
-    //                 type: "typeAction",
-    //                 playLoad: "51108"
-    //             })
-    //             setValidTypeActions(false)
-    //         } else {
-    //             setValidTypeActions(true)
-    //         }
-    //     } else {
-    //         setValidTypeActions(true)
-    //     }
-    // }
-
     const checkValidIntersectingNew = () => {
-
         if (!onlyIntersecting && valuesFields.process.length > 1) {
             const actualOptions = optionsFields.systemsInProcess.map(x => optionsFields.systemsInProcess?.filter(y => y.key == x.key).length == valuesFields.process.length ? x : null).filter(x => x != null)
             if (valuesFields.lostSystems.length !== valuesFields.lostSystems.filter(value => actualOptions.map(val => val.value).includes(value.value)).length) {
@@ -333,10 +348,8 @@ const ScenarioScreen = () => {
         }
     }
 
-
     return <>
         <h2>Экран редактирования</h2>
-
         <FormDefault>
             {finishLoad ?
                 <>
@@ -383,7 +396,9 @@ const ScenarioScreen = () => {
                 </>
                 :
                 <Spinner/>}
+            <PlanAction/>
         </FormDefault>
+
     </>
 }
 
