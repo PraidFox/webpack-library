@@ -17,7 +17,6 @@ const opt = [
     {label: 'Донорское', value: '20204', name: 'typeWorkplace'}
 ]
 export const FieldGr = ({name, defaultValue, title, options, setFunction}: FieldRadioGroup) => {
-    console.log(options)
     return <Field name={name} defaultValue={defaultValue} label={title}>
         {({fieldProps}) => (
             <RadioGroup

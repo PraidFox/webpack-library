@@ -52,6 +52,11 @@ const ScenarioScreen = () => {
         }
     }, []);
 
+    useEffect(() => {
+        console.log(valuesFields.lostSystems)
+        checkValidIntersectingNew()
+    }, [valuesFields.lostSystems]);
+
     const changeOnlyIntersecting = () => {
         if (!onlyIntersecting) {
             setValuesFields({
@@ -60,13 +65,14 @@ const ScenarioScreen = () => {
             })
         }
         setOnlyIntersecting(r => !r)
+        //checkValidIntersecting(valuesFields.lostSystems, optionsFields.systemsInProcess, valuesFields.process.length)
     }
     const changeLostSystems = (e) => {
         setValuesFields({
             type: "addLostSystems",
             playLoad: e
         })
-        checkValidIntersecting(e, optionsFields.systemsInProcess, valuesFields.process.length)
+        //checkValidIntersecting(e, optionsFields.systemsInProcess, valuesFields.process.length)
     }
     const changeProcess = (e: Tools.Interface.OptionsModal.RenderOptionsIssue[]) => {
 
@@ -77,18 +83,28 @@ const ScenarioScreen = () => {
 
         e.length > 0 && Tools.Api.PluginResourceApi.getAllResourceInProcess(e.map(issue => issue.value), ``, "ItSystem")
             .then(r => {
-                    const data = r.data.filter(res => res.resourceType == Tools.Storage.Constants.ResourceTypes.INTERNAL_IT_SYSTEM).map(resource => ({
+
+                    let data = r.data.map(resource => ({
                         label: resource.resourceIssue.summary,
                         value: resource.resourceIssue.id,
                         key: resource.resourceIssue.key,
                         info: resource.resourceIssue.fields["customfield_10212"]
                     }))
+
+                    if (e.length >= 2) {
+                        data = data.map(x => data?.filter(y => y.key == x.key).length == e.length ? {
+                            ...x,
+                            intersecting: true
+                        } : x).filter(x => x != null)
+                    }
+
+
                     setOptionsFields({
                         type: "systemsInProcess",
                         playLoad: {data: data, dispatch: setValuesFields, onlyIntersecting: onlyIntersecting}
                     })
 
-                    checkValidIntersecting(valuesFields.lostSystems, data, e.length)
+                    //checkValidIntersecting(valuesFields.lostSystems, data, e.length)
                 }
             )
 
@@ -101,7 +117,7 @@ const ScenarioScreen = () => {
         })
 
         if (e.target.value == OptionsId.MEASURE_RESOURCE_TYPE_IT_SYSTEM.toString()) {
-            checkValidIntersecting(valuesFields.lostSystems, optionsFields.systemsInProcess, valuesFields.process.length)
+            //checkValidIntersecting(valuesFields.lostSystems, optionsFields.systemsInProcess, valuesFields.process.length)
         } else {
             setValidTypeActions(true)
         }
@@ -127,13 +143,10 @@ const ScenarioScreen = () => {
     const getOptionsForTypeAction = (): OptionsPropType => {
         let options = optionsFields.scenarioAction.filter(opt => valuesFields.typeLostResource == "20215" ? scenarioTypeForSystem.includes(Number(opt.value)) : scenarioTypeForLocation.includes(Number(opt.value)))
 
-        console.log(validTypeActions)
         if (!validTypeActions) {
-            console.log("я здесь")
             options = options.map(opt => opt.value != "51108" ? {...opt, isDisabled: true} : opt)
         }
 
-        console.log(options)
         return options
     }
 
@@ -284,10 +297,29 @@ const ScenarioScreen = () => {
         }
 
     }
-    const checkValidIntersecting = (valueLostSytems, optionsSystemInProcess, countProcess) => {
-        if (!onlyIntersecting && countProcess > 1) {
-            const actualOptions = optionsSystemInProcess.map(x => optionsSystemInProcess?.filter(y => y.key == x.key).length == countProcess ? x : null).filter(x => x != null)
-            if (valueLostSytems.length !== valueLostSytems.filter(value => actualOptions.map(val => val.value).includes(value.value)).length) {
+    // const checkValidIntersecting = (valueLostSytems, optionsSystemInProcess, countProcess) => {
+    //
+    //     if (!onlyIntersecting && countProcess > 1) {
+    //         const actualOptions = optionsSystemInProcess.map(x => optionsSystemInProcess?.filter(y => y.key == x.key).length == countProcess ? x : null).filter(x => x != null)
+    //         if (valueLostSytems.length !== valueLostSytems.filter(value => actualOptions.map(val => val.value).includes(value.value)).length) {
+    //             setValuesFields({
+    //                 type: "typeAction",
+    //                 playLoad: "51108"
+    //             })
+    //             setValidTypeActions(false)
+    //         } else {
+    //             setValidTypeActions(true)
+    //         }
+    //     } else {
+    //         setValidTypeActions(true)
+    //     }
+    // }
+
+    const checkValidIntersectingNew = () => {
+
+        if (!onlyIntersecting && valuesFields.process.length > 1) {
+            const actualOptions = optionsFields.systemsInProcess.map(x => optionsFields.systemsInProcess?.filter(y => y.key == x.key).length == valuesFields.process.length ? x : null).filter(x => x != null)
+            if (valuesFields.lostSystems.length !== valuesFields.lostSystems.filter(value => actualOptions.map(val => val.value).includes(value.value)).length) {
                 setValuesFields({
                     type: "typeAction",
                     playLoad: "51108"
@@ -308,13 +340,6 @@ const ScenarioScreen = () => {
         <FormDefault>
             {finishLoad ?
                 <>
-
-                    <FieldGr name={"typeWorkplace"} title={"Тип рабочего места"}
-                             options={optionsFields.typeWorkplace}
-                             setFunction={(e: ChangeEvent<HTMLInputElement>) => setValuesFields({
-                                 type: 'typeWorkplace',
-                                 playLoad: e.target.value
-                             })}/>
 
                     {checkLevelValid(3) && !validTypeActions &&
                         <SectionMessage title="Не пересекающаяся система" appearance="warning">
