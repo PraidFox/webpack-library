@@ -4,11 +4,10 @@ import React from "react";
 
 
 
-const FormDefault = ({children}) => {
+const FormDefault = ({children} : {children: React.ReactNode}) => {
     return (
         <Form
             onSubmit={(data) => {
-                console.log('form data', data);
                 //return Promise.resolve(validateOnSubmit(data));
             }}
         >
@@ -17,7 +16,7 @@ const FormDefault = ({children}) => {
                     {children}
                            <FormFooter>
                         <Button type="submit" appearance="primary">
-                            Submit
+                            Добавить
                         </Button>
                     </FormFooter>
                 </form>

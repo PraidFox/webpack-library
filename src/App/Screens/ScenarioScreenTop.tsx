@@ -7,26 +7,25 @@ import {
     scenarioTypeForLocation,
     scenarioTypeForSystem,
     workTypeDescription
-} from "../tools/constants";
-import {reducerOptionsField, reducerValueField} from "../tools/redusers";
-import {FieldInScenarioScreen, ValuesFields} from "../tools/interfaces";
-import FormDefault from "./FormDefault";
+} from "../../tools/constants";
+import {reducerOptionsField, reducerValueField} from "../../tools/redusers";
+import {FieldInScenarioScreen, ValuesFields} from "../../tools/interfaces";
 import _ from "lodash";
 import {OptionsPropType} from "@atlaskit/radio/types";
 import SectionMessage from '@atlaskit/section-message';
-import {LostSystemRender} from "../tools/renderComponentOptionsView";
+import {LostSystemRender} from "../../tools/renderComponentOptionsView";
 import QuestionCircleIcon from '@atlaskit/icon/glyph/question-circle'
-import PlanAction from "./PlanAction";
 
 const issue = Tools.Utils.BaseUtils.getCurrentIssueId()
-const defaultValues = {
+const defaultValueFields = {
     process: [],
     lostSystems: []
 }
+
 const fontFamily = "var(--ds-font-family-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif)"
-const ScenarioScreen = () => {
+const ScenarioScreenTop = () => {
     const [optionsFields, setOptionsFields] = useReducer(reducerOptionsField, {} as FieldInScenarioScreen)
-    const [valuesFields, setValuesFields] = useReducer(reducerValueField, defaultValues as ValuesFields)
+    const [valuesFields, setValuesFields] = useReducer(reducerValueField, defaultValueFields as ValuesFields)
     const [finishLoad, setFinishLoad] = useState<boolean>(false)
     const [onlyIntersecting, setOnlyIntersecting] = useState<boolean>(false)
     const [validTypeActions, setValidTypeActions] = useState(true)
@@ -71,14 +70,13 @@ const ScenarioScreen = () => {
         }
         setOnlyIntersecting(r => !r)
     }
-    const changeLostSystems = (e) => {
+    const changeLostSystems = (e:Tools.Interface.OptionsModal.RenderOptionsIssue) => {
         setValuesFields({
             type: "addLostSystems",
             playLoad: e
         })
     }
     const changeProcess = (e: Tools.Interface.OptionsModal.RenderOptionsIssue[]) => {
-
         setValuesFields({
             type: 'addProcess',
             playLoad: {value: e}
@@ -86,8 +84,8 @@ const ScenarioScreen = () => {
 
         e.length > 0 && Tools.Api.PluginResourceApi.getAllResourceInProcess(e.map(issue => issue.value), ``, "ItSystem")
             .then(r => {
-
-                    let data = r.data.map(resource => ({
+                    let prev: Tools.Interface.DtoModal.ResourceInfoDTO[] = r.data
+                    let data = prev.map(resource => ({
                         label: resource.resourceIssue.summary,
                         value: resource.resourceIssue.id,
                         key: resource.resourceIssue.key,
@@ -110,7 +108,7 @@ const ScenarioScreen = () => {
 
 
     }
-    const changeTypeLostResource = (e) => {
+    const changeTypeLostResource = (e: ChangeEvent<HTMLInputElement>) => {
         setValuesFields({
             type: 'typeLostResource',
             playLoad: e.target.value
@@ -170,6 +168,7 @@ const ScenarioScreen = () => {
 
         return options
     }
+
     const getSystemOrScenarioField = () => {
         switch (valuesFields.typeLostResource) {
             case OptionsId.MEASURE_RESOURCE_TYPE_IT_SYSTEM.toString() :
@@ -282,9 +281,6 @@ const ScenarioScreen = () => {
                     /></div>
 
             case OptionsId.TRANSITION_TO_BACKUP_LOCATIONS:
-                console.log(optionsFields.typeWorkplace.map(opt => {
-                    return {...opt, description: workTypeDescription.get(opt.value)}
-                }))
                 let pop = optionsFields.typeWorkplace.map(opt => {
                     return {
                         ...opt,
@@ -296,7 +292,7 @@ const ScenarioScreen = () => {
                             </>
                     }
                 })
-//, add: workTypeDescription.get(x.value)})
+
                 return valuesFields.typeLostResource == OptionsId.MEASURE_RESOURCE_TYPE_OFFICE.toString() ? <>
                     <Components.Fields.FieldRadioGroup name={"typeWorkplace"} title={"Тип рабочего места"}
                                                        options={pop}
@@ -334,7 +330,7 @@ const ScenarioScreen = () => {
     const checkValidIntersectingNew = () => {
         if (!onlyIntersecting && valuesFields.process.length > 1) {
             const actualOptions = optionsFields.systemsInProcess.map(x => optionsFields.systemsInProcess?.filter(y => y.key == x.key).length == valuesFields.process.length ? x : null).filter(x => x != null)
-            if (valuesFields.lostSystems.length !== valuesFields.lostSystems.filter(value => actualOptions.map(val => val.value).includes(value.value)).length) {
+            if (valuesFields.lostSystems.length !== valuesFields.lostSystems.filter(value => actualOptions.map(val => val?.value).includes(value.value)).length) {
                 setValuesFields({
                     type: "typeAction",
                     playLoad: "51108"
@@ -349,11 +345,9 @@ const ScenarioScreen = () => {
     }
 
     return <>
-        <h2>Экран редактирования</h2>
-        <FormDefault>
+        <h2>Добавить сценарий</h2>
             {finishLoad ?
                 <>
-
                     {checkLevelValid(3) && !validTypeActions &&
                         <SectionMessage title="Не пересекающаяся система" appearance="warning">
                         <span> {valuesFields.lostSystems.length > 1 ? "Выбранные системы не являются" : "Выбранная система не является"} частью другого процесса. Поэтому тип действий ограничен только
@@ -369,6 +363,7 @@ const ScenarioScreen = () => {
                         defaultValue={valuesFields.process}
                         isMulti={true}
                     />
+
 
                     {checkLevelValid(1) &&
                         <Components.Fields.FieldRadioGroup
@@ -396,10 +391,10 @@ const ScenarioScreen = () => {
                 </>
                 :
                 <Spinner/>}
-            <PlanAction/>
-        </FormDefault>
+
+
 
     </>
 }
 
-export default ScenarioScreen
+export default ScenarioScreenTop

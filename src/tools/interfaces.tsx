@@ -34,3 +34,28 @@ export interface FieldInScenarioScreen {
     scenarioAction: OptionPropType[],
     typeWorkplace: OptionPropType[],
 }
+
+export interface ScreenAction {
+    sequence: number,
+    duration: number,
+    typeWhoAction: "workers" | "group" | "position" | "role",
+    stepDescription: string,
+    workers: Tools.Interface.OptionsModal.RenderOptionsIssue,
+    group: Tools.Interface.OptionsModal.RenderOptionsIssue,
+    position: Tools.Interface.OptionsModal.RenderOptionsSelect,
+    role: Tools.Interface.OptionsModal.RenderOptionsSelect,
+}
+export interface Action {
+    id?: number,
+    sequence: number,
+    assignee: {id: number, type: string, name: string}
+    description: string
+    duration: number,
+    actionType: "action" | "notification"
+}
+
+export interface ActionNotification extends Action{
+    actionType: "notification"
+    stepBegin?: string
+    levels?: []
+}

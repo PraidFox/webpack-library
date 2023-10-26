@@ -6,6 +6,7 @@ export const reducerValueField = (state: ValuesFields, action: ActionValuesField
 
     switch (action.type) {
         case "addProcess":
+            console.log("action.playLoad.value", action.playLoad.value)
             return {
                 ...state, process: action.playLoad.value
             }
@@ -166,6 +167,10 @@ export const reducerOptionsField = (state: FieldInScenarioScreen, action: Action
     }
 }
 
+
+export const reducerDataTableAction = (state, action) => {
+    return state
+}
 
 const checkLostSystems = (options, valuesFields, onlyIntersecting) => {
 

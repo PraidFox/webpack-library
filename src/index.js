@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import ScenarioTable from "./App/ScenarioTab";
+import ScenarioTable from "./App/App";
 
 function run(type, userAccess) {
 

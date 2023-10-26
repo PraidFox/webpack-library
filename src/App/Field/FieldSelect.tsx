@@ -34,6 +34,24 @@ export const FieldSelect = ({
                             }: FieldSelect) => {
 
     const [value, setValue] = useState()
+    const [input, setInput] = useState([])
+
+
+
+    const getOptions = () => {
+        let newOptions = options
+
+
+        if(input.length > 0) {
+            newOptions = newOptions.filter(opt => opt.label.includes(input))
+        }
+        if(newOptions.length > 100) {
+            newOptions = newOptions.slice(0, 30)
+        }
+
+
+        return newOptions
+    }
 
     return (
         <Field id={id} name={id} label={title} defaultValue={defaultValue}>
@@ -41,15 +59,15 @@ export const FieldSelect = ({
                 <>
                     <Select
                         {...rest}
+                        onInputChange={e => setInput(e)}
                         placeholder={placeholder ? placeholder : "Выбрать из выпадающего списка"}
                         isSearchable={isSearchable}
-                        options={options}
+                        options={getOptions()}
                         onChange={e => {
                             setFunction ? setFunction(e, id) : null
                             setValue(e)
                             onChange(e)
                         }}
-
                         isMulti={isMulti}
                         isClearable={isClearable}
                         components={componentsRender}

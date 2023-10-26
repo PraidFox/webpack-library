@@ -5,7 +5,6 @@ import {GroupHeadingProps} from "@atlaskit/select"
 export const LostSystemRender = (props) => {
     return (
         <>
-
             <components.Option {...props}>
                 {props.children}
                 <br/>
