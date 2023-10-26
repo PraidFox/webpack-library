@@ -46,10 +46,15 @@ module.exports = (env) => {
             new webpack.ProvidePlugin({
                 process: 'process/browser'
             }),
+            // new webpack.DefinePlugin({
+            //     LOCAL: !!env.local,
+            //     ISSUE: 378083,
+            //     KEY: 360133
+            // })
             new webpack.DefinePlugin({
                 LOCAL: !!env.local,
-                ISSUE: 378083,
-                KEY: 360133
+                ISSUE: 363526,
+                KEY: 343665
             })
         ],
     }

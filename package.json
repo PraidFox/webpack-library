@@ -22,7 +22,7 @@
     "@babel/preset-env": "^7.22.20",
     "@babel/preset-react": "^7.22.15",
     "@babel/preset-typescript": "^7.23.0",
-    "@praidfox/tst-library": "^1.0.132",
+    "@praidfox/tst-library": "^1.0.135",
     "@types/react": "^16.8.0",
     "@types/react-dom": "^16.8.0",
     "axios": "^1.5.1",

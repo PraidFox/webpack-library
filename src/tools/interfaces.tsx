@@ -13,9 +13,9 @@ export interface ValuesFields {
     lostSystems: Tools.Interface.OptionsModal.RenderOptionsIssue[] | [],
     typeAction: string,
     alternativeDepartment: any,
-    alternativePartnerMany: {label: string, value: string, key: string, info: string, mainIssue: string}[],
+    alternativePartnerMany: {label: string, value: string, key: string, info: string, mainIssue: number}[],
     alternativePartnerOne: any,
-    alternativeSystems: {label: string, value: string, key: string, info: string, mainIssue: string}[],
+    alternativeSystems: {label: string, value: string, key: string, info: string, mainIssue: number}[],
     typeWorkplace: string,
     needNewLocation: string,
     transitionWorkPlace: any,
@@ -52,10 +52,42 @@ export interface Action {
     description: string
     duration: number,
     actionType: "action" | "notification"
-}
-
-export interface ActionNotification extends Action{
-    actionType: "notification"
     stepBegin?: string
     levels?: []
+}
+
+
+
+
+export interface ScenarioMainDTO {
+    id?: number,
+    bcp: {id:number},
+    lostResourceType: {id: number}
+    itLostSystemInfoDTO?: {
+        id?: number,
+        systems?: {id: number}[],
+        alterSystems?: {
+            mainSystem: {id: number},
+            alterIssue: {id: number},
+            type: {id: number}
+        }[]
+        alterPartners?: {
+            mainSystem: {id: number},
+            alterIssue: {id: number},
+            type: {id: number}
+        }[]
+    }
+    locationLostInfoDTO?: {
+        id?: number,
+        alterLocations?: {id: number}[]
+        alterPartners?: {id: number}[]
+        alterDivisions?: {id: number}[]
+        alterLocationType?: {id: number}
+        needNewLocation?:boolean
+        measureIssue?: {id: number}
+        scenarioTypes?: {id: number}[]
+    }
+    howToTimeSupport: {id: number}
+    supportPercent: {id: number}
+    actions: Action[]
 }

@@ -7,18 +7,12 @@ import React from "react";
 const FormDefault = ({children} : {children: React.ReactNode}) => {
     return (
         <Form
-            onSubmit={(data) => {
-                //return Promise.resolve(validateOnSubmit(data));
-            }}
+            onSubmit={(data) => {}}
         >
             {({ formProps }) => (
                 <form {...formProps}>
                     {children}
-                           <FormFooter>
-                        <Button type="submit" appearance="primary">
-                            Добавить
-                        </Button>
-                    </FormFooter>
+
                 </form>
             )}
         </Form>

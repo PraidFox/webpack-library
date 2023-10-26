@@ -8,7 +8,7 @@ import {createHead, createRow} from "../../tools/templateAction";
 import DynamicTable from "@atlaskit/dynamic-table";
 import SectionMessage from "@atlaskit/section-message";
 
-const TablePlanAction = ({data}) => {
+const TablePlanAction = ({data}: {data:Action[]}) => {
     // const [dataTable, setDataTable] = useReducer(reducerDataTableAction, {})
 
     return (

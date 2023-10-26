@@ -15,6 +15,7 @@ import {OptionsPropType} from "@atlaskit/radio/types";
 import SectionMessage from '@atlaskit/section-message';
 import {LostSystemRender} from "../../tools/renderComponentOptionsView";
 import QuestionCircleIcon from '@atlaskit/icon/glyph/question-circle'
+import FormDefault from "../Default/FormDefault";
 
 const issue = Tools.Utils.BaseUtils.getCurrentIssueId()
 const defaultValueFields = {
@@ -23,7 +24,7 @@ const defaultValueFields = {
 }
 
 const fontFamily = "var(--ds-font-family-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif)"
-const ScenarioScreenTop = () => {
+const ScenarioScreenTop = ({data, setFunction}) => {
     const [optionsFields, setOptionsFields] = useReducer(reducerOptionsField, {} as FieldInScenarioScreen)
     const [valuesFields, setValuesFields] = useReducer(reducerValueField, defaultValueFields as ValuesFields)
     const [finishLoad, setFinishLoad] = useState<boolean>(false)
@@ -58,6 +59,16 @@ const ScenarioScreenTop = () => {
     }, []);
 
     useEffect(() => {
+        if (data) {
+
+            if (data[0].processes.length != 0) {
+                console.log(data)
+            }
+        }
+        console.log(data)
+    }, [data]);
+
+    useEffect(() => {
         checkValidIntersectingNew()
     }, [valuesFields.lostSystems]);
 
@@ -70,7 +81,7 @@ const ScenarioScreenTop = () => {
         }
         setOnlyIntersecting(r => !r)
     }
-    const changeLostSystems = (e:Tools.Interface.OptionsModal.RenderOptionsIssue) => {
+    const changeLostSystems = (e: Tools.Interface.OptionsModal.RenderOptionsIssue) => {
         setValuesFields({
             type: "addLostSystems",
             playLoad: e
@@ -229,7 +240,7 @@ const ScenarioScreenTop = () => {
                 return valuesFields.typeLostResource == OptionsId.MEASURE_RESOURCE_TYPE_IT_SYSTEM.toString() ?
                     valuesFields.lostSystems.map((opt) => <div key={opt.key + "SYSTEMS"}>
                         <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.INTERNAL_IT_SYSTEMS}
-                                                    defaultValue={valuesFields.alternativeSystems?.filter(system => system.mainIssue === opt.value.toString())}
+                                                    defaultValue={valuesFields.alternativeSystems?.filter(system => system.mainIssue === opt.value)}
                                                     placeholder={"Альтернативная система"}
                                                     id={"alternativeSystems" + opt.key}
                                                     title={opt.label}
@@ -241,12 +252,11 @@ const ScenarioScreenTop = () => {
                                                     isClearable={false}/>
                     </div>) : ''
             case OptionsId.OUTSOURCING:
-
                 return valuesFields.typeLostResource == OptionsId.MEASURE_RESOURCE_TYPE_IT_SYSTEM.toString() ? valuesFields.lostSystems.map(opt =>
                         <div
                             key={opt.key + "PARTNERS"}>
                             <Components.Fields.FieldJQL {...Tools.Storage.ConfigForJqlField.PARTNERS}
-                                                        defaultValue={valuesFields.alternativePartnerMany?.filter(partner => partner.mainIssue === opt.value.toString())}
+                                                        defaultValue={valuesFields.alternativePartnerMany?.filter(partner => partner.mainIssue === opt.value)}
                                                         placeholder={"Партнёр"}
                                                         id={"alternativePartner" + opt.key}
                                                         setFunction={(e: ChangeEvent<HTMLInputElement>) => setValuesFields({
@@ -285,10 +295,11 @@ const ScenarioScreenTop = () => {
                     return {
                         ...opt,
                         label:
-                            <>{opt.label}
-                                <span title={workTypeDescription.get(opt.value)}>
-                                <QuestionCircleIcon size={"small"}/>
-                        </span>
+                            <>
+                                {opt.label}
+                                <span title={opt.value ? workTypeDescription.get(opt.value) : ''}>
+                                    <QuestionCircleIcon label={"text"} size={"small"}/>
+                                </span>
                             </>
                     }
                 })
@@ -346,8 +357,9 @@ const ScenarioScreenTop = () => {
 
     return <>
         <h2>Добавить сценарий</h2>
-            {finishLoad ?
-                <>
+        {finishLoad ?
+            <>
+                <FormDefault>
                     {checkLevelValid(3) && !validTypeActions &&
                         <SectionMessage title="Не пересекающаяся система" appearance="warning">
                         <span> {valuesFields.lostSystems.length > 1 ? "Выбранные системы не являются" : "Выбранная система не является"} частью другого процесса. Поэтому тип действий ограничен только
@@ -388,10 +400,10 @@ const ScenarioScreenTop = () => {
                         />}
 
                     {checkLevelValid(3) && getMoreField()}
-                </>
-                :
-                <Spinner/>}
-
+                </FormDefault>
+            </>
+            :
+            <Spinner/>}
 
 
     </>

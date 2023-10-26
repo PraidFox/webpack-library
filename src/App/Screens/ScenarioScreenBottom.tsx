@@ -11,7 +11,9 @@ const ScenarioScreenBottom = () => {
 
     const [optionFiledRto, setOptionFiledRto] = useState<Tools.Interface.OptionsModal.RenderOptionsSelect[]>([])
     const [optionFiledPercentage, setOptionFiledPercentage] = useState<Tools.Interface.OptionsModal.RenderOptionsSelect[]>([])
-    
+    const [dataTable, setDataTable] = useState({})
+
+
     const FieldsId = Tools.Storage.FieldsId
     useEffect(() => {
         const controller = new AbortController();
@@ -28,12 +30,6 @@ const ScenarioScreenBottom = () => {
         }
     }, []);
 
-    const [dataTable, setDataTable] = useState<Action[]>([])
-
-
-    const addAction = () => {
-
-    }
 
     const getType = (value:string) : string => {
         if(value == "group"){
@@ -60,7 +56,7 @@ const ScenarioScreenBottom = () => {
                 duration: data.duration,
                 actionType: "action"
             }
-            setDataTable(r => [...r, dataAction])
+            setDataTable(r => {...r, actions: [...r.actions, dataAction]})
 
             return ''
         }
@@ -85,12 +81,19 @@ const ScenarioScreenBottom = () => {
         return required
     }
 
+    const setSupportTime =(e) => {
+        console.log(e)
+    }
+    const setCompletionPercentage =(e) => {
+        console.log(e)
+    }
+
     return <>
         <hr/>
         <h4>Прогноз исполнения процесса/функции в таком формате</h4>
-        <Components.Fields.FieldSelect id={"supportTime"} placeholder={""} title={"Сколько времени вы можете поддерживать?"} options={optionFiledRto}/>
-        <Components.Fields.FieldSelect id={"completionPercentage"} placeholder={""} title={"Процент исполнения"} options={optionFiledPercentage}/>
-        <TablePlanAction data={dataTable}/>
+        <Components.Fields.FieldSelect id={"supportTime"} placeholder={""} title={"Сколько времени вы можете поддерживать?"} options={optionFiledRto} setFunction={setSupportTime}/>
+        <Components.Fields.FieldSelect id={"completionPercentage"} placeholder={""} title={"Процент исполнения"} options={optionFiledPercentage} setFunction={setCompletionPercentage}/>
+        <TablePlanAction data={data.actions}/>
         <ModalDefault title={"Добавление действия"} handler={handler}>
             <FormAddAction sequence={dataTable.length + 1}/>
         </ModalDefault>
